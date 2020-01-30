@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Homebrew;
 
 namespace HomebrewTemplate
 {
@@ -24,6 +15,7 @@ namespace HomebrewTemplate
         public MainWindow()
         {
             InitializeComponent();
+            
         }
 
         private void ProgramWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -33,8 +25,33 @@ namespace HomebrewTemplate
 
         private void ExitProgram_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Application.Current.Shutdown();
+        }
+        private void TelegramButton_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://t.me/iKolesDev");
+        }
+
+        private void Developer_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            TelegramButton_MouseDown(sender, e);
+        }
+        private void EnableStartBtn()
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() => {
+                StartBtn.IsEnabled = true;
+            }));
         }
         #endregion
+
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+            StartBtn.IsEnabled = false;
+            new Thread(()=>
+            {
+                Thread.Sleep(2000);
+                EnableStartBtn();
+            }).Start();
+        }
     }
 }
