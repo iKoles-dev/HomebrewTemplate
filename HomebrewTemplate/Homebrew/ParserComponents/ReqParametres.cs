@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -12,16 +13,26 @@ namespace Homebrew
     /// </summary>
     class ReqParametres
     {
-        public HttpWebRequest Request { get; }
-        //Parametres
-        private string _link;
+        private HttpWebRequest _request;
+        public HttpWebRequest Request { 
+            get
+            {
+                _request.Method = _httpMethod.ToString();
+                if (_reqData.Length > 0)
+                {
+                    ASCIIEncoding encoding = new ASCIIEncoding();
+                    byte[] byte1 = encoding.GetBytes(_reqData);
+                    _request.ContentLength = byte1.Length;
+                    Stream newStream = _request.GetRequestStream();
+                    newStream.Write(byte1, 0, byte1.Length);
+                }
+                return _request;
+            }
+        }
+        public HttpWebRequest RowRequest => _request;
+        
         private HttpMethod _httpMethod;
         private string _reqData;
-        private bool _allowAutoRedirect;
-        private int _maximumAutomaticRedirections;
-        private string _contentType;
-        private CookieCollection _cookieCollection;
-        private string _userAgent;
 
         /// <summary>
         /// Основной метод создания нового запроса.
@@ -34,23 +45,9 @@ namespace Homebrew
         /// <param name="reqData">Тело запроса</param>
         public ReqParametres(String link, HttpMethod httpMethod = HttpMethod.GET, String reqData = "")
         {
-
-            //Set Link
-            _link = LinkFormatter(link);
-            Request = (HttpWebRequest)WebRequest.Create(_link);
-
-            //SetMethod
+            _request = (HttpWebRequest)WebRequest.Create(LinkFormatter(link));
             _httpMethod = httpMethod;
-            Request.Method = _httpMethod.ToString();
             _reqData = reqData;
-            if (_reqData.Length > 0)
-            {
-                ASCIIEncoding encoding = new ASCIIEncoding();
-                byte[] byte1 = encoding.GetBytes(_reqData);
-                Request.ContentLength = byte1.Length;
-                Stream newStream = Request.GetRequestStream();
-                newStream.Write(byte1, 0, byte1.Length);
-            }
         }
         /// <summary>
         /// Установка дополнительных параметров
@@ -60,24 +57,11 @@ namespace Homebrew
         /// <param name="contentType">Тип контента задаётся через класс "ParserContentType"</param>
         /// <param name="cookieCollection">Cookie задаются через "CookieCollection"</param>
         public void SetReqAdditionalParametres(bool allowAutoRedirect = true, int maximumAutomaticRedirections = 100,
-            String contentType = "application/x-www-form-urlencoded", CookieCollection cookieCollection = null)
+            String contentType = "application/x-www-form-urlencoded")
         {
-            //Set AutoRedirect
-            _allowAutoRedirect = allowAutoRedirect;
-            _maximumAutomaticRedirections = maximumAutomaticRedirections;
-            Request.MaximumAutomaticRedirections = _maximumAutomaticRedirections;
-            Request.AllowAutoRedirect = _allowAutoRedirect;
-
-            //ContentType
-            _contentType = contentType;
-            Request.ContentType = _contentType;
-
-            //Cookie
-            if (cookieCollection != null)
-            {
-                _cookieCollection = cookieCollection;
-                Request.CookieContainer.Add(_cookieCollection);
-            }
+            _request.MaximumAutomaticRedirections = maximumAutomaticRedirections;
+            _request.AllowAutoRedirect = allowAutoRedirect;
+            _request.ContentType = contentType;
         }
         /// <summary>
         /// Установка прокси
@@ -85,15 +69,22 @@ namespace Homebrew
         /// <param name="proxy">IP-адрес прокси</param>
         /// <param name="login">Логин</param>
         /// <param name="password">Пароль</param>
-        public void SetProxy()
+        public void SetProxy(int timeOut = 5000,string proxy = "")
         {
-            SetTimout(5000);
+            SetTimout(timeOut);
             try
             {
-                Request.Proxy = new WebProxy(new Uri("http://" + Proxies.GetProxy()));
-            } catch (Exception ex)
+                if (proxy.Equals(""))
+                {
+                    _request.Proxy = new WebProxy(new Uri($"http://{Proxies.GetProxy()}"));
+                }
+                else
+                {
+                    string tempProxy = proxy.StartsWith("http") ? proxy : $"http://{proxy}";
+                }
+            } catch (Exception)
             {
-                SetProxy();
+                SetProxy(timeOut,proxy);
             }
         }
         /// <summary>
@@ -102,13 +93,57 @@ namespace Homebrew
         /// <param name="userAgent">Юзер-агент</param>
         public void SetUserAgent(string userAgent)
         {
-            _userAgent = userAgent;
-            Request.UserAgent = _userAgent;
+            _request.UserAgent = userAgent;
         }
         public void SetTimout(int timeout)
         {
-
-            Request.Timeout = timeout;
+            _request.Timeout = timeout;
+        }
+        public void SetCookie(CookieContainer cookieContainer)
+        {
+            _request.CookieContainer = cookieContainer;
+        }
+        public void AddCookie(Cookie cookie)
+        {
+            _request.CookieContainer.Add(cookie);
+        }
+        public void AddCookie(CookieCollection cookie)
+        {
+            _request.CookieContainer.Add(cookie);
+        }
+        public void AddCookie(string cookie, bool multiline = false)
+        {
+            if (!multiline)
+            {
+                string name = "";
+                string value = "";
+                if (cookie.Contains("=") && cookie.Split('=').Length == 2)
+                {
+                    name = cookie.Split('=')[0];
+                    value = cookie.Split('=')[1];
+                    AddCookie(new Cookie(name, value));
+                }
+            }
+            else
+            {
+                if (cookie.Contains("="))
+                {
+                    List<string> allCookies = new List<string>(cookie.Split(';'));
+                    CookieCollection cookieCollection = new CookieCollection();
+                    allCookies.ForEach(cook =>
+                    {
+                        if (cook.Contains("=") && cook.Split('=').Length == 2)
+                        {
+                            cookieCollection.Add(
+                                new Cookie(
+                                    cook.Split('=')[0],
+                                    cook.Split('=')[1]
+                                    ));
+                        }
+                    });
+                    AddCookie(cookieCollection);
+                }
+            }
         }
         private static String LinkFormatter(String link)
         {

@@ -13,25 +13,34 @@ namespace Homebrew
     /// <seealso cref="ReqParametres"/>
     public class LinkParser
     {
-        private int _repeatCount = 0;
-        public String Data { get; private set; }
+        public string Data { get; private set; }
+        public CookieContainer Cookies { get; private set; }
+        public Boolean IsError { get; private set; }
         private HttpWebRequest request;
         private Encoding _encoding = Encoding.UTF8;
-        public void SetEncodingMethod(Encoding encoding)
-        {
-            _encoding = encoding;            
-        }
         public LinkParser(HttpWebRequest httpRequest)
         {
             request = httpRequest;
             StartParsing();
         }
+        public LinkParser(HttpWebRequest httpRequest, Encoding encoding)
+        {
+            _encoding = encoding;
+            request = httpRequest;
+            StartParsing();
+        }
         private void StartParsing()
         {
+
+            if (request.CookieContainer == null || request.CookieContainer.Count == 0)
+            {
+                request.CookieContainer = new CookieContainer();
+            }
             try
             {
                 string data;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                IsError = response.StatusCode == HttpStatusCode.OK ? false : true;
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     Stream receiveStream = response.GetResponseStream();
@@ -45,6 +54,12 @@ namespace Homebrew
                         readStream = new StreamReader(receiveStream, _encoding);
                     }
                     data = readStream.ReadToEnd();
+                    CookieContainer cookieContainer = new CookieContainer();
+                    foreach (Cookie cookie in response.Cookies)
+                    {
+                        cookieContainer.Add(cookie);
+                    }
+                    Cookies = cookieContainer;
                     response.Close();
                     readStream.Close();
                 }
@@ -54,8 +69,9 @@ namespace Homebrew
                 }
                 Data = data;
             }
-            catch(Exception error)
+            catch (Exception)
             {
+                IsError = true;
                 Data = "";
             }
         }
