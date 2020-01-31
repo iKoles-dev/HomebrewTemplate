@@ -23,7 +23,7 @@
         <RichTextBox x:Name="DebugBox" Height="200" Margin="0,50,0,0" VerticalAlignment="Top" FontSize="14" Block.LineHeight="6" Background="#33ECCECE" FontWeight="Normal" Foreground="#DDFFFFFF" BorderBrush="#897AFF0B" IsReadOnly="True" Padding="5,0,0,0" UseLayoutRounding="False" AllowDrop="True" VerticalScrollBarVisibility="Visible">
             <FlowDocument/>
         </RichTextBox>
-        <ProgressBar x:Name="WorkProgress" Height="35" Margin="0,255,0,0" VerticalAlignment="Top" Background="#7F554F4F" BorderBrush="{x:Null}" HorizontalAlignment="Left" Width="640">
+        <ProgressBar x:Name="WorkProgress" Height="35" Margin="0,255,0,0" VerticalAlignment="Top" Background="#7F554F4F" BorderBrush="{x:Null}">
             <ProgressBar.Foreground>
                 <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -39,6 +39,7 @@
                 </LinearGradientBrush>
             </ProgressBar.Foreground>
         </ProgressBar>
+        <Label x:Name="WorkProgressLabel" Content="0%" Margin="215,255,0,95" HorizontalAlignment="Left" Width="213" FontSize="16" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
     </Grid>
 
 

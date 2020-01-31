@@ -109,6 +109,12 @@ namespace Homebrew
         }
 #endif
 #if WPF
+        public static void Set(this Label label, string text)
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() => {
+                label.Content = text;
+            }));
+        }
         public static void Set(this RichTextBox richTextBox, string text)
         {
             Application.Current.Dispatcher.Invoke(new Action(() => {

@@ -15,7 +15,9 @@ namespace HomebrewTemplate
         public MainWindow()
         {
             InitializeComponent();
-            
+            Controls.DebugBox = DebugBox;
+            Controls.WorkProgress = WorkProgress;
+            Controls.WorkProgressLabel = WorkProgressLabel;
         }
 
         private void ProgramWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

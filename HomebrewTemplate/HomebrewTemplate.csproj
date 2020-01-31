@@ -96,6 +96,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Homebrew\Additional\Controls.cs" />
+    <Compile Include="Homebrew\Additional\Parser.cs" />
     <Compile Include="Homebrew\Additional\WorkHelper.cs" />
     <Compile Include="Homebrew\Enums\HttpMethod.cs" />
     <Compile Include="Homebrew\Enums\ParserContentType.cs" />
