@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -10,6 +11,7 @@ namespace Homebrew
 {
     public class Parser
     {
+        #region Управление интерфейсом
         /// <summary>
         /// Доступ к окну лога
         /// </summary>
@@ -17,30 +19,26 @@ namespace Homebrew
         /// <summary>
         /// Доступ к прогресс бару + авто-установка его числового отображения
         /// </summary>
-        protected ProgressBar WorkProgress
-        {
-            get
-            {
-                return Controls.WorkProgress;
-            }
-            set
-            {
-                if (value.Value >= 0 && value.Value <= 100)
-                {
-                    Controls.WorkProgressLabel.Set(value + "%");
-                }
-                Controls.WorkProgress = value;
-            }
-        }
         /// <summary>
         /// Доступ к сохранённым куки
-        /// </summary>
+        /// </summary>        
+        protected void SetProgress(double value)
+        {
+            if (value >= 0 && value <= 100)
+            {
+                Controls.WorkProgressLabel.Set(value + "%");
+            }
+            Controls.WorkProgress.SetValue(value);
+        }
+        #endregion
         protected CookieContainer SavedCookies = new CookieContainer();
-        protected delegate void SyncThread(string param);
-        protected Stack<SyncThread> ThreadStack = new Stack<SyncThread>();
+        #region Управление потоками
         private int threadCount = 0;
+        protected delegate void ExecutionMethod(dynamic param);
+        protected ExecutionMethod MethodToExecute;
+        protected Stack<dynamic> Parametres = new Stack<object>();
         protected delegate void ExecuteHandler();
-        protected event ExecuteHandler OnExecuteCimpleted; 
+        protected event ExecuteHandler OnExecuteCompleted; 
         protected void Execute(int threadCount)
         {
             for (int i = 0; threadCount>i; i++)
@@ -49,17 +47,26 @@ namespace Homebrew
                 StartThread();
             }
         }
+        /// <summary>
+        /// Запускаем поток
+        /// </summary>
         private void StartThread()
         {
-            while (ThreadStack.Count > 0)
+            Thread thread = new Thread(()=>
             {
-                ThreadStack.Pop();
-            }
-            threadCount--;
-            if (threadCount == 0)
-            {
-                OnExecuteCimpleted.Invoke();
-            }
+                while (Parametres.Count > 0)
+                {
+                    MethodToExecute(Parametres.Pop());
+                }
+                threadCount--;
+                if (threadCount == 0)
+                {
+                    OnExecuteCompleted.Invoke();
+                }
+            });
+            thread.IsBackground = true;
+            thread.Start();
         }
+        #endregion
     }
 }

@@ -136,8 +136,7 @@ namespace Homebrew
         public static void WriteLine(this RichTextBox richTextBox, string text)
         {
             Application.Current.Dispatcher.Invoke(new Action(() => {
-                richTextBox.Document.Blocks.Add(new Paragraph(new Run(text)));
-                richTextBox.ScrollToEnd();
+                Write(richTextBox, text + "\n");
             }));
         }
         public static void SetValue(this ProgressBar progressBar, Double value)

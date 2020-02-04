@@ -11,6 +11,6 @@ namespace Homebrew
     {
         public static RichTextBox DebugBox { get; set; }
         public static ProgressBar WorkProgress { get; set; }
-        public static Label WorkProgressLabel { get; set }
+        public static Label WorkProgressLabel { get; set; }
     }
 }
